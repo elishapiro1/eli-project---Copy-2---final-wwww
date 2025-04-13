@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}Products{% endblock %}
+
+{% block extra_head %}
+<style>
+    .product-card {
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+        margin-bottom: 2rem;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+    }
+    .product-image {
+        height: 150px;
+        object-fit: contain;
+        padding: 1rem;
+    }
+    .category-title {
+        margin: 2rem 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #eee;
+    }
+    .add-to-cart-btn {
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="display-4 mb-4">Our Products</h1>
+    <p class="lead mb-5">Quality Soccer Equipment for Every Player</p>
+
+    <!-- Soccer Balls Category -->
+    <h2 class="category-title">Soccer Balls</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card product-card">
+                <img src="https://assets.adidas.com/images/w_600,f_auto,q_auto/28530d07245942fc944dae680084fb30_9366/Al_Rihla_Pro_Ball_White_H57783_01_standard.jpg" 
+                     class="card-img-top product-image" 
+                     alt="Al Rihla Pro Ball">
+                <div class="card-body">
+                    <h5 class="card-title">Al Rihla Pro Ball</h5>
+                    <p class="card-text">Professional match ball used in top competitions.</p>
+                    <p class="card-text"><strong>Price: ₪599.99</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" 
+                            onclick="addToCart('Al Rihla Pro Ball', 599.99)">
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card product-card">
+                <img src="https://static.nike.com/a/images/t_PDP_936_v1/f_auto,q_auto:eco/1042032c-7fb0-4c01-9870-6dd76a6ed5f4/PL+NK+FLIGHT+-+FA24.png" 
+                     class="card-img-top product-image" 
+                     alt="Flight Ball">
+                <div class="card-body">
+                    <h5 class="card-title">Flight Ball</h5>
+                    <p class="card-text">High-performance training ball with excellent durability.</p>
+                    <p class="card-text"><strong>Price: ₪160</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" 
+                            onclick="addToCart('Flight Ball', 160)">
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clothing -->
+    <h2 class="category-title">Clothing</h2>
+    <div class="row">
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://www.kitlocker.com/images/stories/virtuemart/product/24601-C(1)-P(0)-R(50d9o).jpg" 
+                     class="card-img-top product-image" 
+                     alt="Dri-FIT Academy Jersey">
+                <div class="card-body">
+                    <h5 class="card-title">Dri-FIT Academy Jersey</h5>
+                    <p class="card-text">High-quality training jersey with moisture-wicking technology.</p>
+                    <p class="card-text"><strong>Price: ₪35</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Dri-FIT Academy Jersey', 35)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://assets.adidas.com/images/w_1880,f_auto,q_auto/d78e51f6a8cf446ebae1ae9e00c4b04e_9366/HK7638_01_laydown.jpg" 
+                     class="card-img-top product-image" 
+                     alt="Tiro 23 Jersey">
+                <div class="card-body">
+                    <h5 class="card-title">Tiro 23 Jersey</h5>
+                    <p class="card-text">Professional match jersey with advanced ventilation.</p>
+                    <p class="card-text"><strong>Price: ₪40</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Tiro 23 Jersey', 40)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Protective Gear -->
+    <h2 class="category-title">Protective Gear</h2>
+    <div class="row">
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://m.media-amazon.com/images/I/61aDqcuzrxL._AC_UF1000,1000_QL80_.jpg" 
+                     class="card-img-top product-image" 
+                     alt="Mercurial Lite Shin Guards">
+                <div class="card-body">
+                    <h5 class="card-title">Mercurial Lite Shin Guards</h5>
+                    <p class="card-text">Lightweight protection with secure fit system.</p>
+                    <p class="card-text"><strong>Price: ₪120</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Mercurial Lite Shin Guards', 120)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9HCCjDNTscEBO-vcdp4bnmO3TB-mr-t2I8w&s" 
+                     class="card-img-top product-image" 
+                     alt="Predator Pro Gloves">
+                <div class="card-body">
+                    <h5 class="card-title">Predator Pro Gloves</h5>
+                    <p class="card-text">Professional goalkeeper gloves with grip control.</p>
+                    <p class="card-text"><strong>Price: ₪120</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Predator Pro Gloves', 120)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shoes -->
+    <h2 class="category-title">Shoes</h2>
+    <div class="row">
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://images.prodirectsport.com/ProductImages/Main/1029082_Main_1902230.jpg" 
+                     class="card-img-top product-image" 
+                     alt="Mercurial Superfly">
+                <div class="card-body">
+                    <h5 class="card-title">Mercurial Superfly</h5>
+                    <p class="card-text">High-performance soccer cleats for explosive speed.</p>
+                    <p class="card-text"><strong>Price: ₪275</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Mercurial Superfly', 275)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT53bCj58UEhMUyFhqTEonaz4oS6VAYDGayDg&s" 
+                     class="card-img-top product-image" 
+                     alt="Predator Accuracy">
+                <div class="card-body">
+                    <h5 class="card-title">Predator Accuracy</h5>
+                    <p class="card-text">Premium control boots with enhanced ball touch.</p>
+                    <p class="card-text"><strong>Price: ₪275</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Predator Accuracy', 275)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accessories -->
+    <h2 class="category-title">Accessories</h2>
+    <div class="row">
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://www.performancehealth.com/media/catalog/product/a/h/ahp-1.jpg?optimize=low&bg-color=255,255,255&fit=bounds&height=700&width=700" 
+                     class="card-img-top product-image" 
+                     alt="Ball Pump">
+                <div class="card-body">
+                    <h5 class="card-title">Ball Pump</h5>
+                    <p class="card-text">Reliable dual-action pump with needle adapter.</p>
+                    <p class="card-text"><strong>Price: ₪15</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Ball Pump', 15)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/49b26daa44814a89881c33706a19fae8_9366/EP-Syst._Shoe_Bag_Blue_IM5234_01_standard.jpg" 
+                     class="card-img-top product-image" 
+                     alt="Shoe Bag">
+                <div class="card-body">
+                    <h5 class="card-title">Shoe Bag</h5>
+                    <p class="card-text">Ventilated shoe bag with adjustable strap.</p>
+                    <p class="card-text"><strong>Price: ₪20</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Shoe Bag', 20)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Merchandise -->
+    <h2 class="category-title">Team Merchandise</h2>
+    <div class="row">
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlfNIKev3iP7ewW80iAawZu0iDXZ_xF8fCgA&s" 
+                     class="card-img-top product-image" 
+                     alt="Club Scarf">
+                <div class="card-body">
+                    <h5 class="card-title">Club Scarf</h5>
+                    <p class="card-text">Official team scarf with woven club crest.</p>
+                    <p class="card-text"><strong>Price: ₪30</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Club Scarf', 30)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://static.nike.com/a/images/t_PDP_936_v1/f_auto,q_auto:eco/4e867631-265e-4b7f-8494-987f388d8eca/NK+ACDMY+TEAM+BKPK+2.3.png" 
+                     class="card-img-top product-image" 
+                     alt="Team Backpack">
+                <div class="card-body">
+                    <h5 class="card-title">Team Backpack</h5>
+                    <p class="card-text">Spacious backpack with dedicated ball compartment.</p>
+                    <p class="card-text"><strong>Price: ₪50</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Team Backpack', 50)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Equipment -->
+    <h2 class="category-title">Training Equipment</h2>
+    <div class="row">
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtFkGyqW90pssptJrzyR2rjJDL8QztTLEakg&s" 
+                     class="card-img-top product-image" 
+                     alt="Agility Ladder">
+                <div class="card-body">
+                    <h5 class="card-title">Agility Ladder</h5>
+                    <p class="card-text">Adjustable ladder for footwork training.</p>
+                    <p class="card-text"><strong>Price: ₪30</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Agility Ladder', 30)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card product-card">
+                <img src="https://cdn.thewirecutter.com/wp-content/media/2025/01/resistancebands-2048px-00137.jpg?auto=webp&quality=75&width=1024" 
+                     class="card-img-top product-image" 
+                     alt="Resistance Bands">
+                <div class="card-body">
+                    <h5 class="card-title">Resistance Bands</h5>
+                    <p class="card-text">Set of progressive resistance bands for strength training.</p>
+                    <p class="card-text"><strong>Price: ₪25</strong></p>
+                    <button class="btn btn-primary add-to-cart-btn" onclick="addToCart('Resistance Bands', 25)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addToCart(name, price) {
+    fetch('/add-to-cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: name,
+            price: price
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update cart count in navbar
+            const cartCount = document.getElementById('cartCount');
+            if (cartCount) {
+                cartCount.textContent = data.cartCount;
+            }
+            
+            // Show success message
+            alert('Item added to cart!');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding item to cart');
+    });
+}
+</script>
+{% endblock %} 

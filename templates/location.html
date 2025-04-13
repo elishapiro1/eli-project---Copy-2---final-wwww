@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Location{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+    #map {
+        height: 400px;
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .hours-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="display-4 mb-4">Visit Our Store</h1>
+        <p class="lead">Find us at Ugav 4, Rosh HaAyin, Israel</p>
+        
+        <div id="map" class="mb-4"></div>
+
+        <div class="hours-container">
+            <h2 class="h4 mb-4">Store Hours</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><strong>Sunday - Thursday:</strong> 9:00 AM - 8:00 PM</li>
+                        <li class="mb-2"><strong>Friday:</strong> 9:00 AM - 2:00 PM</li>
+                        <li class="mb-2"><strong>Saturday:</strong> Closed</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-info">
+                        <h3 class="h5">Contact Information</h3>
+                        <p class="mb-0">
+                            <strong>Phone:</strong> 058-550-8955<br>
+                            <strong>Email:</strong> eli.shapiro2007@gmail.com
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    window.onload = function() {
+        // Coordinates for Ugav 4, Rosh HaAyin
+        const lat = 32.092667;
+        const lng = 34.972000;
+        
+        // Initialize the map
+        const map = L.map('map').setView([lat, lng], 17);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Add a marker
+        const marker = L.marker([lat, lng])
+            .addTo(map)
+            .bindPopup('<strong>The Sport Store</strong><br>Ugav 4, Rosh HaAyin<br>Israel')
+            .openPopup();
+    }
+</script>
+{% endblock %} 

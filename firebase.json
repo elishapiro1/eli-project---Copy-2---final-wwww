@@ -1,0 +1,37 @@
+{
+  "type": "service_account",
+  "project_id": "sukastore-cd9bd",
+  "private_key_id": "47fc0bb89cda53b29e26f474b4cf4c37c3987386",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCsq7KSfkbRbeLf\n4xAV52AYBpq5+2r7jjoCymqMyG7mQHT9n2C+Uv0F9C5ffYMp8pWXuqDZxtNrPuPk\nuQihqjBhtdumUl+yAX0crDj/VGNPFbDyf0E8hiLq2l9x6Kw8YlFRNaVkL+/A3HWW\nUnsca+coxa3NmXKTRw/Yj4KlVovN2AczuS4D4f0Zc7TMjof2nUwhpOCZBa/FESfV\nFU9mqv0PG3dua7ULYXd+wUooLaMn2OmCNkgoq6p0Ms3qYBZDqsxKAzDrkFhpD+D9\nRkZwya3FMKKyC6APGhzpRzY7pFOegrqXjwfNiaVQ6hzKqap68QacGeJha2ZFpaNK\n+H0e2NeZAgMBAAECggEAAVot4ZZSFSlMZc74LQe9GasRkqPMrHAqdaOirnwSXETE\ndckF/6+UMjP9mftYZ99xuvi38kSrmrMpIz0su2FjFBzRvc122OTIl00k/CDrzy5/\nDoMfHmt5ggfYSALXuHhXpTBrnWt/r+26EQWP18Ljkk7sA8hwHIWpsts63XMeUKwd\nZUL3BKvcgkdoqB9sRqwH7PrIGatT7mKTNDJAbTPsGbU2XsaLB9E9TfRs4kt9REky\ndYTehepkNmmNidPSdY8md8CKQCBERGlz0Its2Sd8N8TmoaSo3XI84GeuP3AIyQRk\nj11AfQSUo7rgay9GciIexs3ld2NOlIVHem9847eaBQKBgQDTyxLuXhq3AG68IoHY\nA2+kkhiUecpxpCEX7WTTotZJvGsND42J4dV4JutppSzkxbpglUJBnqOaL3XGk971\n9SchD2KYWot1c58KuWC6jIH+qUTbwfwbTZ7t/QDgYdmvQv/wdgvZJfF+wHexdp4q\nvv0JCbnipyko1cBFTNq1PtzwzQKBgQDQtieq8Ud+45Dpb4cQaruiUXiOPDJW1j3z\n1oDpxOdg1ZaQiI81VQ4+V5ibcfuZtc7bXcN/ef0Gw8ukg5bOERwIjMw89QQxDcWE\nV3qcb8XQpmYHQjbrE/p2DYo33WRHzsP3hD2NChHGZMugivBf+4PPOQG4ArH7rw/j\njyd4N4ZR/QKBgGHShBXxBSnNW1guIAbj32cFy7CYaDcA9gAVN+LAbXV1P4Sy0E8F\nLhHm+Ai9r/SilykRB59DZJFMpntnxS2ZY89TSdjQyWUgWC8d3F2NlGVJTXKrMIRz\n35pQp1z8FQ1sRsaL34EWk2pV/3LKNNfNixXnliHnz4z63Wmky8e3F1lpAoGBAJbX\n8BeGRswYoPV2G8HrwizwgRcbvq4wLZp8H7PVEf1UoXtYl1hOXvsDyFIgsV1In3bA\nb7lEa3FmNVpzmJzalM5BJKOx2hOyBl099Gn4BppkiT0ZyCNizxRfeNQjeITFlbDg\nrLOw4WPoGZuwj0Zvu7YbV3isygJDZlJrdnVWfAfpAoGBAKaI1OJu1Dh0NofNXsRw\nrDB/G+IceKq5829C8zrWnQfgLoA5c4yRLc8kV0QGX7mz4HleB4eQLgtq2I+KK30o\nqjMqRFkJUuiVF2z95Vzu7RhxLaI7OKzV+2vWUadd3SlMplDAfX4qyORwfNp9v/xV\nTIwssuOuDfpbghMUfWh7fNx6\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@sukastore-cd9bd.iam.gserviceaccount.com",
+  "client_id": "110760822351690883801",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40sukastore-cd9bd.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com",
+  "rules_version": "2",
+  "service": "cloud.firestore",
+  "rules": {
+    "match /databases/{database}/documents": {
+      "match /users/{userId}": {
+        "allow read, write": "if request.auth != null && request.auth.uid == userId"
+      },
+      "match /field_rentals/{rentalId}": {
+        "allow read": "if request.auth != null",
+        "allow write": "if request.auth != null && (resource == null || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.is_admin == true)"
+      },
+      "match /{document=**}": {
+        "allow read": "if true",
+        "allow write": "if request.auth != null"
+      }
+    }
+  },
+  "apiKey": "AIzaSyDk3l0Nvc4QRF96dIWRioTWIZu8hELmcso",
+  "authDomain": "sukastore-cd9bd.firebaseapp.com",
+  "databaseURL": "https://sukastore-cd9bd-default-rtdb.firebaseio.com/",
+  "storageBucket": "sukastore-cd9bd.firebasestorage.app",
+  "messagingSenderId": "456214004691",
+  "appId": "1:456214004691:web:26eac85d8c706571802526",
+  "measurementId": "G-SDWJD037Z4"
+}

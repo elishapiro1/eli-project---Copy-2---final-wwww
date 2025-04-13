@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+    .admin-dashboard {
+        padding: 30px 0;
+    }
+    .admin-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: transform 0.2s;
+    }
+    .admin-card:hover {
+        transform: translateY(-5px);
+    }
+    .admin-card h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+    }
+    .admin-card .icon {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: #3498db;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container admin-dashboard">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">Admin Dashboard</h1>
+            <p class="lead">Welcome to the administrative area for The Sport Store.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="icon">🛒</div>
+                <h3>Orders</h3>
+                <p>View and manage customer orders.</p>
+                <a href="{{ url_for('admin_orders') }}" class="btn btn-primary">Manage Orders</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="icon">⚽</div>
+                <h3>Field Rentals</h3>
+                <p>Manage soccer field rental requests and bookings.</p>
+                <a href="{{ url_for('admin_rentals') }}" class="btn btn-primary">Manage Rentals</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script>
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyDk3l0Nvc4QRF96dIWRioTWIZu8hELmcso",
+        authDomain: "sukastore-cd9bd.firebaseapp.com",
+        databaseURL: "https://sukastore-cd9bd-default-rtdb.firebaseio.com",
+        projectId: "sukastore-cd9bd",
+        storageBucket: "sukastore-cd9bd.firebasestorage.app",
+        messagingSenderId: "456214004691",
+        appId: "1:456214004691:web:26eac85d8c706571802526",
+        measurementId: "G-SDWJD037Z4"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    // Set persistence to LOCAL
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .catch((error) => {
+            console.error("Error setting persistence:", error);
+        });
+        
+    // Check authentication status
+    firebase.auth().onAuthStateChanged((user) => {
+        if (!user) {
+            console.log("User not authenticated, redirecting to login");
+            window.location.href = "{{ url_for('auth') }}";
+        } else {
+            console.log("Admin dashboard: User authenticated as", user.email);
+        }
+    });
+</script>
+{% endblock %} 

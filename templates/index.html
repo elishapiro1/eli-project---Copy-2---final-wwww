@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h1 class="display-4">The Sport Store</h1>
+            {% if user %}
+            <p class="lead">Welcome back, {{ user.name }}!</p>
+            {% else %}
+            <p class="lead">Welcome to the store, enjoy the purchase!</p>
+            {% endif %}
+            <hr class="my-4">
+            <p>Get started by exploring our products or visiting our store location.</p>
+            <a class="btn btn-primary btn-lg" href="{{ url_for('location') }}" role="button">Visit Store</a>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-md-12 text-center">
+            <img src="https://thesportshop.co.il/wp-content/uploads/2020/08/logo2.jpg" alt="The Sport Store Logo" class="img-fluid" style="max-width: 800px;">
+        </div>
+    </div>
+</div>
+{% endblock %} 

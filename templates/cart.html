@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart{% endblock %}
+
+{% block extra_head %}
+<style>
+    .cart-item {
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        padding: 1rem;
+    }
+    .cart-total {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .quantity-control button {
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .empty-cart {
+        text-align: center;
+        padding: 3rem;
+    }
+    .thank-you-message {
+        display: none;
+        text-align: center;
+        padding: 3rem;
+        background-color: #d4edda;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+    }
+    .product-image {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="display-4 mb-4">Shopping Cart</h1>
+
+    <div id="thankYouMessage" class="thank-you-message">
+        <h3>Thank you for your purchase!</h3>
+        <p>Your receipt has been downloaded.</p>
+        <a href="{{ url_for('products') }}" class="btn btn-primary mt-3">Continue Shopping</a>
+    </div>
+
+    <div id="cartContent">
+        {% if cart_items %}
+            <div class="cart-items mb-4">
+                {% for item in cart_items %}
+                <div class="card cart-item">
+                    <div class="row align-items-center">
+                        <div class="col-md-1">
+                            {% if item.name == "Al Rihla Pro Ball" %}
+                            <img src="https://assets.adidas.com/images/w_600,f_auto,q_auto/28530d07245942fc944dae680084fb30_9366/Al_Rihla_Pro_Ball_White_H57783_01_standard.jpg"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Flight Ball" %}
+                            <img src="https://static.nike.com/a/images/t_PDP_936_v1/f_auto,q_auto:eco/1042032c-7fb0-4c01-9870-6dd76a6ed5f4/PL+NK+FLIGHT+-+FA24.png"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Dri-FIT Academy Jersey" %}
+                            <img src="https://www.kitlocker.com/images/stories/virtuemart/product/24601-C(1)-P(0)-R(50d9o).jpg"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Tiro 23 Jersey" %}
+                            <img src="https://assets.adidas.com/images/w_1880,f_auto,q_auto/d78e51f6a8cf446ebae1ae9e00c4b04e_9366/HK7638_01_laydown.jpg"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Mercurial Lite Shin Guards" %}
+                            <img src="https://m.media-amazon.com/images/I/61aDqcuzrxL._AC_UF1000,1000_QL80_.jpg"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Predator Pro Gloves" %}
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9HCCjDNTscEBO-vcdp4bnmO3TB-mr-t2I8w&s"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Mercurial Superfly" %}
+                            <img src="https://images.prodirectsport.com/ProductImages/Main/1029082_Main_1902230.jpg"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Predator Accuracy" %}
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT53bCj58UEhMUyFhqTEonaz4oS6VAYDGayDg&s"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Ball Pump" %}
+                            <img src="https://www.performancehealth.com/media/catalog/product/a/h/ahp-1.jpg?optimize=low&bg-color=255,255,255&fit=bounds&height=700&width=700"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Shoe Bag" %}
+                            <img src="https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/49b26daa44814a89881c33706a19fae8_9366/EP-Syst._Shoe_Bag_Blue_IM5234_01_standard.jpg"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Club Scarf" %}
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlfNIKev3iP7ewW80iAawZu0iDXZ_xF8fCgA&s"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Team Backpack" %}
+                            <img src="https://static.nike.com/a/images/t_PDP_936_v1/f_auto,q_auto:eco/4e867631-265e-4b7f-8494-987f388d8eca/NK+ACDMY+TEAM+BKPK+2.3.png"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Agility Ladder" %}
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtFkGyqW90pssptJrzyR2rjJDL8QztTLEakg&s"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% elif item.name == "Resistance Bands" %}
+                            <img src="https://cdn.thewirecutter.com/wp-content/media/2025/01/resistancebands-2048px-00137.jpg?auto=webp&quality=75&width=1024"
+                                 class="product-image"
+                                 alt="{{ item.name }}">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-5">
+                            <h5 class="mb-0">{{ item.name }}</h5>
+                        </div>
+                        <div class="col-md-2">
+                            <p class="mb-0">₪{{ item.price }}</p>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="quantity-control">
+                                <button class="btn btn-outline-secondary" onclick="updateQuantity('{{ item.name }}', -1)">-</button>
+                                <span>{{ item.quantity }}</span>
+                                <button class="btn btn-outline-secondary" onclick="updateQuantity('{{ item.name }}', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <button class="btn btn-danger btn-sm" onclick="removeItem('{{ item.name }}')">Remove</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="row justify-content-end">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Cart Summary</h5>
+                            <p class="cart-total">Total: ₪{{ total }}</p>
+                            
+                            {% if not user %}
+                            <!-- Guest checkout form -->
+                            <div class="guest-checkout mb-3" id="guestCheckoutForm">
+                                <h4>Guest Checkout</h4>
+                                <div class="mb-3">
+                                    <label for="guestName" class="form-label">Your Name</label>
+                                    <input type="text" class="form-control" id="guestName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="guestEmail" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="guestEmail" required>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <button class="btn btn-primary w-100" onclick="checkout()">Checkout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-cart">
+                <h3>Your cart is empty</h3>
+                <p class="text-muted">Add some products to your cart!</p>
+                <a href="{{ url_for('products') }}" class="btn btn-primary">Continue Shopping</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function updateQuantity(productName, change) {
+    fetch('/update-cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: productName,
+            change: change
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating cart');
+    });
+}
+
+function removeItem(productName) {
+    fetch('/remove-from-cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: productName
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error removing item');
+    });
+}
+
+function checkout() {
+    {% if not user %}
+    // For guest users, collect their information
+    const guestName = document.getElementById('guestName').value;
+    const guestEmail = document.getElementById('guestEmail').value;
+    
+    if (!guestName || !guestEmail) {
+        alert('Please provide your name and email to checkout.');
+        return;
+    }
+    
+    // Send checkout request with guest info
+    fetch('/checkout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: guestName,
+            email: guestEmail
+        })
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        // Create a link to download the PDF
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'receipt.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        // Redirect to home page after successful checkout
+        window.location.href = '/home';
+    });
+    {% else %}
+    // For logged in users
+    fetch('/checkout', {
+        method: 'POST'
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        // Create a link to download the PDF
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'receipt.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        // Redirect to home page after successful checkout
+        window.location.href = '/home';
+    });
+    {% endif %}
+}
+</script>
+{% endblock %} 

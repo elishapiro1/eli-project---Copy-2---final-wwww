@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Orders{% endblock %}
+
+{% block extra_head %}
+<style>
+    .order-item {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.2s;
+    }
+    .order-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .order-item .badge {
+        font-size: 0.9rem;
+    }
+    .order-details {
+        margin: 15px 0;
+    }
+    .order-details p {
+        margin-bottom: 8px;
+    }
+    .product-list {
+        margin-top: 10px;
+    }
+    .product-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .product-item:last-child {
+        border-bottom: none;
+    }
+    .filter-controls {
+        margin-bottom: 20px;
+    }
+    .status-pending {
+        background-color: #ffc107;
+    }
+    .status-processing {
+        background-color: #17a2b8;
+    }
+    .status-shipped {
+        background-color: #28a745;
+    }
+    .status-delivered {
+        background-color: #6c757d;
+    }
+    .status-cancelled {
+        background-color: #dc3545;
+    }
+    .no-orders {
+        padding: 30px;
+        text-align: center;
+        border: 1px dashed #ccc;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">Order Management</h1>
+        <a href="{{ url_for('admin') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="filter-controls">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active" data-status="all">All Orders</button>
+                    <button type="button" class="btn btn-outline-warning" data-status="pending">Pending</button>
+                    <button type="button" class="btn btn-outline-info" data-status="processing">Processing</button>
+                    <button type="button" class="btn btn-outline-success" data-status="shipped">Shipped</button>
+                    <button type="button" class="btn btn-outline-secondary" data-status="delivered">Delivered</button>
+                    <button type="button" class="btn btn-outline-danger" data-status="cancelled">Cancelled</button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <input type="date" id="dateFilter" class="form-control" placeholder="Filter by date">
+            </div>
+        </div>
+    </div>
+
+    <div id="ordersList">
+        <!-- Order items will be populated here -->
+        <div class="no-orders" id="noOrders">
+            <h3>No orders found</h3>
+            <p>When customers place orders, they will appear here.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyDk3l0Nvc4QRF96dIWRioTWIZu8hELmcso",
+        authDomain: "sukastore-cd9bd.firebaseapp.com",
+        databaseURL: "https://sukastore-cd9bd-default-rtdb.firebaseio.com",
+        projectId: "sukastore-cd9bd",
+        storageBucket: "sukastore-cd9bd.firebasestorage.app",
+        messagingSenderId: "456214004691",
+        appId: "1:456214004691:web:26eac85d8c706571802526",
+        measurementId: "G-SDWJD037Z4"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    // Set persistence to LOCAL to maintain login state across page reloads
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .catch((error) => {
+            console.error("Error setting persistence:", error);
+        });
+    
+    // Check if user is authenticated on page load
+    firebase.auth().onAuthStateChanged((user) => {
+        if (!user) {
+            console.log("User not authenticated, redirecting to login");
+            // Redirect to login page if not authenticated
+            window.location.href = "{{ url_for('auth') }}";
+        } else {
+            console.log("User authenticated:", user.email);
+            // Load orders once authenticated
+            loadOrders();
+        }
+    });
+    
+    // DOM elements
+    const ordersList = document.getElementById('ordersList');
+    const noOrdersMessage = document.getElementById('noOrders');
+    const dateFilter = document.getElementById('dateFilter');
+    const statusButtons = document.querySelectorAll('.btn-group button');
+    
+    // Current filters
+    let currentStatusFilter = 'all';
+    let currentDateFilter = '';
+    
+    // Load orders from Firestore
+    function loadOrders() {
+        // Check authentication first
+        if (!firebase.auth().currentUser) {
+            console.log("User not authenticated in loadOrders");
+            return; // Exit early if not authenticated
+        }
+        
+        console.log("Loading orders with filter:", currentStatusFilter);
+        
+        // Clear current list
+        ordersList.innerHTML = '';
+        
+        // Start with all orders, ordered by date
+        let query = firebase.firestore().collection('orders')
+            .orderBy('order_date', 'desc');
+        
+        // Apply status filter if not 'all'
+        if (currentStatusFilter !== 'all') {
+            console.log(`Filtering by status: "${currentStatusFilter}"`);
+            query = query.where('status', '==', currentStatusFilter);
+        }
+        
+        // Apply date filter if set
+        if (currentDateFilter) {
+            // Create start and end of the selected date
+            const startDate = new Date(currentDateFilter);
+            const endDate = new Date(currentDateFilter);
+            endDate.setDate(endDate.getDate() + 1);
+            
+            // Convert to timestamps for Firestore query
+            const startTimestamp = firebase.firestore.Timestamp.fromDate(startDate);
+            const endTimestamp = firebase.firestore.Timestamp.fromDate(endDate);
+            
+            query = query.where('order_date', '>=', startTimestamp)
+                         .where('order_date', '<', endTimestamp);
+        }
+        
+        query.get().then((querySnapshot) => {
+            console.log(`Found ${querySnapshot.size} order(s) matching filter`);
+            
+            if (querySnapshot.empty) {
+                // Show no orders message
+                ordersList.appendChild(noOrdersMessage);
+                return;
+            }
+            
+            // Hide no orders message
+            noOrdersMessage.style.display = 'none';
+            
+            // Create order items
+            querySnapshot.forEach((doc) => {
+                const order = doc.data();
+                const orderId = doc.id;
+                
+                console.log(`Order ${orderId} status: "${order.status}"`);
+                
+                // Format date
+                const orderDate = order.order_date ? new Date(order.order_date.toDate()) : new Date();
+                const formattedDate = orderDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                // Calculate total
+                let total = 0;
+                if (order.items) {
+                    order.items.forEach(item => {
+                        total += (item.price * item.quantity);
+                    });
+                }
+                
+                // Format products list
+                let productsHtml = '<div class="product-list">';
+                if (order.items && order.items.length > 0) {
+                    order.items.forEach(item => {
+                        productsHtml += `
+                            <div class="product-item">
+                                <div>${item.name} × ${item.quantity}</div>
+                                <div>$${(item.price * item.quantity).toFixed(2)}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    productsHtml += '<p>No products found in this order.</p>';
+                }
+                productsHtml += '</div>';
+                
+                // Create order item
+                const orderItem = document.createElement('div');
+                orderItem.className = 'order-item';
+                orderItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4>Order #${orderId.substring(0, 8)} <span class="badge status-${order.status || 'pending'}">${(order.status || 'pending').toUpperCase()}</span></h4>
+                        <div>
+                            <button class="btn btn-sm btn-info ${order.status !== 'pending' ? 'd-none' : ''}" 
+                                onclick="updateOrderStatus('${orderId}', 'processing')">
+                                Process
+                            </button>
+                            <button class="btn btn-sm btn-success ${order.status !== 'processing' ? 'd-none' : ''}" 
+                                onclick="updateOrderStatus('${orderId}', 'shipped')">
+                                Ship
+                            </button>
+                            <button class="btn btn-sm btn-secondary ${order.status !== 'shipped' ? 'd-none' : ''}" 
+                                onclick="updateOrderStatus('${orderId}', 'delivered')">
+                                Mark Delivered
+                            </button>
+                            <button class="btn btn-sm btn-danger ${['delivered', 'cancelled'].includes(order.status) ? 'd-none' : ''}" 
+                                onclick="updateOrderStatus('${orderId}', 'cancelled')">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                    <div class="order-details">
+                        <p><strong>Customer:</strong> ${order.customer_name || 'Guest'}</p>
+                        <p><strong>Email:</strong> ${order.email || 'N/A'}</p>
+                        <p><strong>Order Date:</strong> ${formattedDate}</p>
+                        <p><strong>Status:</strong> <span class="badge status-${order.status || 'pending'}">${(order.status || 'pending').toUpperCase()}</span></p>
+                        <p><strong>Total:</strong> $${total.toFixed(2)}</p>
+                        <p><strong>Products:</strong></p>
+                        ${productsHtml}
+                    </div>
+                `;
+                
+                ordersList.appendChild(orderItem);
+            });
+        }).catch((error) => {
+            console.error("Error getting orders:", error);
+        });
+    }
+    
+    // Update order status
+    function updateOrderStatus(orderId, newStatus) {
+        // Check if user is authenticated
+        const currentUser = firebase.auth().currentUser;
+        if (!currentUser) {
+            alert("You must be logged in to perform this action.");
+            return;
+        }
+
+        console.log(`Updating order ${orderId} status to: "${newStatus}"`);
+
+        // Show loading indicator or disable buttons
+        const buttons = document.querySelectorAll(`button[onclick*="${orderId}"]`);
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+        });
+
+        // Ensure status is lowercase for consistency
+        const formattedStatus = newStatus.toLowerCase().trim();
+        
+        firebase.firestore().collection('orders').doc(orderId)
+            .update({
+                status: formattedStatus,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp(),
+                updated_by: currentUser.uid
+            })
+            .then(() => {
+                console.log(`Successfully updated order ${orderId} status to "${formattedStatus}"`);
+                
+                // Switch to the appropriate filter tab
+                const targetButton = document.querySelector(`.btn-group button[data-status="${formattedStatus}"]`);
+                if (targetButton) {
+                    // Update active button
+                    statusButtons.forEach(btn => btn.classList.remove('active'));
+                    targetButton.classList.add('active');
+                    
+                    // Update filter
+                    currentStatusFilter = formattedStatus;
+                    console.log(`Switched to filter: "${currentStatusFilter}"`);
+                } else {
+                    console.warn(`Could not find filter button for status: "${formattedStatus}"`);
+                }
+                
+                // Reload the orders list with new filter
+                loadOrders();
+                
+                // Show success message
+                alert(`Order successfully marked as ${formattedStatus}`);
+            })
+            .catch((error) => {
+                console.error("Error updating order:", error);
+                alert("Error updating order status: " + error.message);
+                
+                // Re-enable buttons
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.textContent.includes('Process') ? 'Process' :
+                                   btn.textContent.includes('Ship') ? 'Ship' :
+                                   btn.textContent.includes('Delivered') ? 'Mark Delivered' : 'Cancel';
+                });
+            });
+    }
+    
+    // Setup status filter buttons
+    statusButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Update active button
+            statusButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            // Update filter
+            currentStatusFilter = button.getAttribute('data-status');
+            console.log(`Filter changed to: ${currentStatusFilter}`);
+            
+            // Reload orders
+            loadOrders();
+        });
+    });
+    
+    // Setup date filter
+    dateFilter.addEventListener('change', (e) => {
+        currentDateFilter = e.target.value;
+        console.log(`Date filter changed to: ${currentDateFilter}`);
+        loadOrders();
+    });
+    
+    // Initial load - no longer needed as we call loadOrders in onAuthStateChanged
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("DOM fully loaded");
+        // loadOrders moved to onAuthStateChanged handler
+    });
+</script>
+{% endblock %} 

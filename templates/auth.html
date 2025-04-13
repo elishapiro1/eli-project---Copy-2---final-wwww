@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Authentication{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .auth-form {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .auth-tabs {
+        margin-bottom: 20px;
+    }
+    .auth-tabs .nav-link {
+        color: #6c757d;
+    }
+    .auth-tabs .nav-link.active {
+        color: #2c3e50;
+        font-weight: bold;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .error-message {
+        color: #dc3545;
+        margin-top: 0.5rem;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-tabs">
+        <ul class="nav nav-tabs" id="authTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="login-tab" data-bs-toggle="tab" href="#login" role="tab">Login</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="signup-tab" data-bs-toggle="tab" href="#signup" role="tab">Sign Up</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="tab-content" id="authTabsContent">
+        <!-- Login Form -->
+        <div class="tab-pane fade show active" id="login" role="tabpanel">
+            <div class="auth-form">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" class="form-control" id="loginEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" class="form-control" id="loginPassword" required>
+                    </div>
+                    <div class="error-message" id="loginError"></div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Signup Form -->
+        <div class="tab-pane fade" id="signup" role="tabpanel">
+            <div class="auth-form">
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="signupName">Full Name</label>
+                        <input type="text" class="form-control" id="signupName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail">Email</label>
+                        <input type="email" class="form-control" id="signupEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" class="form-control" id="signupPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" required>
+                    </div>
+                    <div class="error-message" id="signupError"></div>
+                    <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyDk3l0Nvc4QRF96dIWRioTWIZu8hELmcso",
+        authDomain: "sukastore-cd9bd.firebaseapp.com",
+        databaseURL: "https://sukastore-cd9bd-default-rtdb.firebaseio.com",
+        projectId: "sukastore-cd9bd",
+        storageBucket: "sukastore-cd9bd.firebasestorage.app",
+        messagingSenderId: "456214004691",
+        appId: "1:456214004691:web:26eac85d8c706571802526",
+        measurementId: "G-SDWJD037Z4"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    // Set persistence to LOCAL to maintain login state across page reloads
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => {
+            console.log("Persistence set to LOCAL");
+        })
+        .catch((error) => {
+            console.error("Error setting persistence:", error);
+        });
+
+    // Login Form Handler
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const errorElement = document.getElementById('loginError');
+
+        firebase.auth().signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // Get user's profile from Firestore
+                return firebase.firestore().collection('users').doc(userCredential.user.uid).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            // Store user info in session
+                            return fetch('/set_user_session', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    uid: userCredential.user.uid,
+                                    name: doc.data().name,
+                                    email: doc.data().email,
+                                    is_admin: doc.data().is_admin || false
+                                })
+                            });
+                        }
+                    });
+            })
+            .then(() => {
+                // Login successful
+                window.location.href = '/home';
+            })
+            .catch((error) => {
+                errorElement.textContent = error.message;
+                errorElement.style.display = 'block';
+            });
+    });
+
+    // Signup Form Handler
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('signupName').value;
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const errorElement = document.getElementById('signupError');
+
+        if (password !== confirmPassword) {
+            errorElement.textContent = "Passwords do not match";
+            errorElement.style.display = 'block';
+            return;
+        }
+
+        firebase.auth().createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // Update user profile in Firebase Authentication
+                return userCredential.user.updateProfile({
+                    displayName: name
+                });
+            })
+            .then(() => {
+                // Store user info in session first
+                const user = firebase.auth().currentUser;
+                return fetch('/set_user_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        uid: user.uid,
+                        name: name,
+                        email: email,
+                        is_admin: false  // Default to regular user
+                    })
+                });
+            })
+            .then(() => {
+                // Try to create user profile in Firestore
+                const user = firebase.auth().currentUser;
+                return firebase.firestore().collection('users').doc(user.uid).set({
+                    name: name,
+                    email: email,
+                    is_admin: false,  // Default to regular user
+                    created_at: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch(error => {
+                    console.error("Firestore write failed:", error);
+                    // Continue even if Firestore write fails
+                    return Promise.resolve();
+                });
+            })
+            .then(() => {
+                window.location.href = '/home';
+            })
+            .catch((error) => {
+                errorElement.textContent = error.message;
+                errorElement.style.display = 'block';
+            });
+    });
+
+    // Check authentication state
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            // User is signed in
+            console.log('User is signed in:', user.email);
+        } else {
+            // User is signed out
+            console.log('User is signed out');
+        }
+    });
+</script>
+{% endblock %} 

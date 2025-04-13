@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Field Rentals{% endblock %}
+
+{% block extra_head %}
+<style>
+    .rental-item {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.2s;
+    }
+    .rental-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .rental-item .badge {
+        font-size: 0.9rem;
+    }
+    .rental-details {
+        margin: 15px 0;
+    }
+    .rental-details p {
+        margin-bottom: 8px;
+    }
+    .status-pending {
+        background-color: #ffc107;
+    }
+    .status-approved {
+        background-color: #28a745;
+    }
+    .status-rejected {
+        background-color: #dc3545;
+    }
+    .status-completed {
+        background-color: #6c757d;
+    }
+    .filter-controls {
+        margin-bottom: 20px;
+    }
+    .no-rentals {
+        padding: 30px;
+        text-align: center;
+        border: 1px dashed #ccc;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">Field Rental Requests</h1>
+        <a href="{{ url_for('admin') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="filter-controls">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active" data-status="all">All</button>
+                    <button type="button" class="btn btn-outline-warning" data-status="pending">Pending</button>
+                    <button type="button" class="btn btn-outline-success" data-status="approved">Approved</button>
+                    <button type="button" class="btn btn-outline-danger" data-status="rejected">Rejected</button>
+                    <button type="button" class="btn btn-outline-secondary" data-status="completed">Completed</button>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-dark ms-3" onclick="debugRentalStatuses()">
+                    <i class="bi bi-bug"></i> Debug Statuses
+                </button>
+            </div>
+            <div class="col-md-4">
+                <input type="date" id="dateFilter" class="form-control" placeholder="Filter by date">
+            </div>
+        </div>
+    </div>
+
+    <div id="rentalsList">
+        <!-- Rental items will be populated here -->
+        <div class="no-rentals" id="noRentals">
+            <h3>No rental requests found</h3>
+            <p>When customers submit rental requests, they will appear here.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyDk3l0Nvc4QRF96dIWRioTWIZu8hELmcso",
+        authDomain: "sukastore-cd9bd.firebaseapp.com",
+        databaseURL: "https://sukastore-cd9bd-default-rtdb.firebaseio.com",
+        projectId: "sukastore-cd9bd",
+        storageBucket: "sukastore-cd9bd.firebasestorage.app",
+        messagingSenderId: "456214004691",
+        appId: "1:456214004691:web:26eac85d8c706571802526",
+        measurementId: "G-SDWJD037Z4"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    // Set persistence to LOCAL to maintain login state across page reloads
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => {
+            console.log("Persistence set to LOCAL");
+        })
+        .catch((error) => {
+            console.error("Error setting persistence:", error);
+        });
+    
+    // Check if user is authenticated on page load
+    firebase.auth().onAuthStateChanged((user) => {
+        if (!user) {
+            console.log("User not authenticated, redirecting to login");
+            // Redirect to login page if not authenticated
+            window.location.href = "{{ url_for('auth') }}";
+        } else {
+            console.log("User authenticated:", user.email);
+            // Load rentals once authenticated
+            loadRentals();
+        }
+    });
+    
+    // DOM elements
+    const rentalsList = document.getElementById('rentalsList');
+    const noRentalsMessage = document.getElementById('noRentals');
+    const dateFilter = document.getElementById('dateFilter');
+    const statusButtons = document.querySelectorAll('.btn-group button');
+    
+    // Current filters
+    let currentStatusFilter = 'all';
+    let currentDateFilter = '';
+    
+    // Load rentals from Firestore
+    function loadRentals() {
+        // Check authentication first
+        if (!firebase.auth().currentUser) {
+            console.log("User not authenticated in loadRentals");
+            return; // Exit early if not authenticated
+        }
+        
+        console.log("Loading rentals with filter:", currentStatusFilter);
+        
+        // Clear current list
+        rentalsList.innerHTML = '';
+        
+        // Start with all rentals, ordered by date
+        let query = firebase.firestore().collection('field_rentals')
+            .orderBy('date', 'asc');
+        
+        // Apply status filter if not 'all'
+        if (currentStatusFilter !== 'all') {
+            console.log(`Filtering by status: "${currentStatusFilter}"`);
+            query = query.where('status', '==', currentStatusFilter);
+        }
+        
+        // Apply date filter if set
+        if (currentDateFilter) {
+            query = query.where('date', '==', currentDateFilter);
+        }
+        
+        query.get().then((querySnapshot) => {
+            console.log(`Found ${querySnapshot.size} rental(s) matching filter`);
+            
+            if (querySnapshot.empty) {
+                // Show no rentals message
+                rentalsList.appendChild(noRentalsMessage);
+                return;
+            }
+            
+            // Hide no rentals message
+            noRentalsMessage.style.display = 'none';
+            
+            // Create rental items
+            querySnapshot.forEach((doc) => {
+                const rental = doc.data();
+                const rentalId = doc.id;
+                
+                console.log(`Rental ${rentalId} status: "${rental.status}"`);
+                
+                // Format date
+                const formattedDate = new Date(rental.date + 'T' + rental.time)
+                    .toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                
+                // Create rental item
+                const rentalItem = document.createElement('div');
+                rentalItem.className = 'rental-item';
+                rentalItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4>${rental.name} <span class="badge status-${rental.status}">${rental.status.toUpperCase()}</span></h4>
+                        <div>
+                            <button class="btn btn-sm btn-success ${rental.status !== 'pending' ? 'd-none' : ''}" 
+                                onclick="updateRentalStatus('${rentalId}', 'approved')">
+                                Approve
+                            </button>
+                            <button class="btn btn-sm btn-danger ${rental.status !== 'pending' ? 'd-none' : ''}" 
+                                onclick="updateRentalStatus('${rentalId}', 'rejected')">
+                                Reject
+                            </button>
+                            <button class="btn btn-sm btn-secondary ${rental.status !== 'approved' ? 'd-none' : ''}" 
+                                onclick="updateRentalStatus('${rentalId}', 'completed')">
+                                Mark Completed
+                            </button>
+                        </div>
+                    </div>
+                    <div class="rental-details">
+                        <p><strong>Email:</strong> ${rental.email}</p>
+                        <p><strong>Phone:</strong> ${rental.phone}</p>
+                        <p><strong>Date and Time:</strong> ${formattedDate}</p>
+                        <p><strong>People:</strong> ${rental.people}</p>
+                        ${rental.notes ? `<p><strong>Notes:</strong> ${rental.notes}</p>` : ''}
+                        <p><strong>Status:</strong> <span class="badge status-${rental.status}">${rental.status.toUpperCase()}</span></p>
+                        <p><strong>Requested on:</strong> ${rental.created_at ? new Date(rental.created_at.toDate()).toLocaleString() : 'Unknown'}</p>
+                        ${rental.updated_at ? `<p><strong>Last updated:</strong> ${new Date(rental.updated_at.toDate()).toLocaleString()}</p>` : ''}
+                    </div>
+                `;
+                
+                rentalsList.appendChild(rentalItem);
+            });
+        }).catch((error) => {
+            console.error("Error getting rentals: ", error);
+        });
+    }
+    
+    // Update rental status
+    function updateRentalStatus(rentalId, newStatus) {
+        // Check if user is authenticated
+        const currentUser = firebase.auth().currentUser;
+        if (!currentUser) {
+            alert("You must be logged in to perform this action.");
+            return;
+        }
+
+        console.log(`Updating rental ${rentalId} status to: "${newStatus}"`);
+
+        // Show loading indicator or disable buttons
+        const buttons = document.querySelectorAll(`button[onclick*="${rentalId}"]`);
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+        });
+
+        // Ensure status is lowercase for consistency
+        const formattedStatus = newStatus.toLowerCase().trim();
+        
+        firebase.firestore().collection('field_rentals').doc(rentalId)
+            .update({
+                status: formattedStatus,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp(),
+                updated_by: currentUser.uid
+            })
+            .then(() => {
+                console.log(`Successfully updated rental ${rentalId} status to "${formattedStatus}"`);
+                
+                // Switch to the appropriate filter tab
+                const targetButton = document.querySelector(`.btn-group button[data-status="${formattedStatus}"]`);
+                if (targetButton) {
+                    // Update active button
+                    statusButtons.forEach(btn => btn.classList.remove('active'));
+                    targetButton.classList.add('active');
+                    
+                    // Update filter
+                    currentStatusFilter = formattedStatus;
+                    console.log(`Switched to filter: "${currentStatusFilter}"`);
+                } else {
+                    console.warn(`Could not find filter button for status: "${formattedStatus}"`);
+                }
+                
+                // Reload the rentals list with new filter
+                loadRentals();
+                
+                // Show success message
+                alert(`Rental successfully ${formattedStatus === 'approved' ? 'approved' : 
+                                           formattedStatus === 'rejected' ? 'rejected' : 
+                                           'marked as completed'}`);
+            })
+            .catch((error) => {
+                console.error("Error updating rental: ", error);
+                alert("Error updating rental status: " + error.message);
+                
+                // Re-enable buttons
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.textContent.includes('Approve') ? 'Approve' :
+                                    btn.textContent.includes('Reject') ? 'Reject' : 'Mark Completed';
+                });
+            });
+    }
+    
+    // Setup status filter buttons
+    statusButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Update active button
+            statusButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            // Update filter
+            currentStatusFilter = button.getAttribute('data-status');
+            
+            // Reload rentals
+            loadRentals();
+        });
+    });
+    
+    // Setup date filter
+    dateFilter.addEventListener('change', (e) => {
+        currentDateFilter = e.target.value;
+        loadRentals();
+    });
+    
+    // Initial load - no longer needed as we call loadRentals in onAuthStateChanged
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("DOM fully loaded");
+        // loadRentals moved to onAuthStateChanged handler
+        
+        // Debug function to check all rental statuses
+        function checkAllRentalStatuses() {
+            firebase.firestore().collection('field_rentals').get()
+                .then((querySnapshot) => {
+                    console.log("--- DEBUG: ALL RENTAL STATUSES ---");
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        console.log(`Rental ${doc.id}: status="${data.status}" (type: ${typeof data.status})`);
+                    });
+                    console.log("--- END DEBUG ---");
+                })
+                .catch(error => {
+                    console.error("Error checking rentals:", error);
+                });
+        }
+        
+        // Run debug check
+        setTimeout(checkAllRentalStatuses, 2000);
+    });
+</script>
+{% endblock %} 
